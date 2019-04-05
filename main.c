@@ -44,6 +44,9 @@ this program.  If not, see <http://www.gnu.org/licenses/>.  */
 #ifdef HAVE_FCNTL_H
 # include <fcntl.h>
 #endif
+#ifdef  POSIX
+# include <sys/sysinfo.h>
+#endif
 
 #ifdef _AMIGA
 int __stack = 20000; /* Make sure we have 20K of stack space */
@@ -259,7 +262,7 @@ static const int default_job_slots = INVALID_JOB_SLOTS;
 
 /* Value of job_slots that means no limit.  */
 
-static const int inf_jobs = 0;
+static int inf_jobs = 16;
 
 /* Authorization for the jobserver.  */
 
@@ -363,7 +366,7 @@ static const char *const usage[] =
   -I DIRECTORY, --include-dir=DIRECTORY\n\
                               Search DIRECTORY for included makefiles.\n"),
     N_("\
-  -j [N], --jobs[=N]          Allow N jobs at once; infinite jobs with no arg.\n"),
+  -j [N], --jobs[=N]          Allow N jobs at once; `nprocs` jobs with no arg.\n"),
     N_("\
   -k, --keep-going            Keep going when some targets can't be made.\n"),
     N_("\
@@ -1134,6 +1137,7 @@ main (int argc, char **argv, char **envp)
   (void)textdomain (PACKAGE);
 
 #ifdef  POSIX
+  inf_jobs = get_nprocs();
   sigemptyset (&fatal_signal_set);
 #define ADD_SIG(sig)    sigaddset (&fatal_signal_set, sig)
 #else
